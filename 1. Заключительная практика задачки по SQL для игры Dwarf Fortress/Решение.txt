@@ -1,0 +1,91 @@
+Задание 1. Получить информацию о всех гномах, которые входят в какой-либо отряд, вместе с информацией об их отрядах.
+
+Решение:
+select * 
+from Dwarves as d
+inner join Squads as s on d.squad_id = s.squad_id;
+
+
+Задание 2. Найти всех гномов с профессией "miner", которые не состоят ни в одном отряде.
+
+Решение:
+select * 
+from Dwarves as d
+where d.profession = 'miner'
+and squad_id is NULL;
+
+
+Задание 3. Получить все задачи с наивысшим приоритетом, которые находятся в статусе "pending".
+
+with max_priority as (select max(priority) as max_p from Tasks)
+select * 
+from Tasks as t
+inner join max_priority mp on t.priority = mp.max_p
+where t.status = 'pending';
+
+
+Задание 4. Для каждого гнома, который владеет хотя бы одним предметом, получить количество предметов, которыми он владеет.
+
+Решение:
+select d.name, count(*) 
+from Dwarves as d
+inner join Items as i on d.dwarf_id = i.owner_id
+group by d.name;
+
+#Если есть хотя бы один предмет в котором owner_id is NULL, то получается все гномы владеют хотя бы одним предметом
+#Тогда в условие join можно добавить or i.owner_id is NULL
+
+
+Задание 5.Получить список всех отрядов и количество гномов в каждом отряде. Также включите в выдачу отряды без гномов.
+
+Решение:
+select s.name, count(select ) as quantity 
+from Squads as s
+inner join Dwarves as d on s.squad_id = d.squad_id
+union
+select name, 0
+from Squads as s
+where s.squad_id not in (select squad_id from Dwarves);
+
+
+Задание 6.Получить список профессий с наибольшим количеством незавершённых задач ("pending" и "in_progress") у гномов этих профессий.
+
+Решение:
+select d.profession 
+from Dwarves as d
+inner join Tasks as t on d.dwarf_id = t.assigned_to
+where 
+t.status in ('pending', 'in_progress')
+and count(*) = select max(quantity) from (select count(*) as quantity from Dwarves as d
+inner join Tasks as t on d.dwarf_id = t.assigned_to
+where t.status in ('pending', 'in_progress')
+group by d.profession) as subrequest;
+
+Задание 7. Для каждого типа предметов узнать средний возраст гномов, владеющих этими предметами.
+
+Решение
+select i.type, avg(d.age) 
+from Items i
+inner join Dwarves d on i.owner_id = d.dwarf_id
+group by i.type;
+
+Задание 8.Найти всех гномов старше среднего возраста (по всем гномам в базе), которые не владеют никакими предметами.
+with mean_age as (select avg(age) as age from Dwarves)
+select *
+from Dwarves as d
+where 
+d.age > mean_age.age
+and d.dwarf_id not in (select distinct(owner_id) from Items);
+
+
+
+
+
+
+
+
+
+
+
+
+
