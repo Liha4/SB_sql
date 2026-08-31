@@ -1,0 +1,49 @@
+Задача 2: Получение данных о гноме с навыками и назначениями
+
+Решение:
+select JSON_OBJECT(
+KEY 'dwarf_id' VALUE d.dwarf_id,
+KEY 'age' VALUE d.age,
+KEY 'profession' VALUE d.profession,
+KEY 'related_entities' VALUE JSON_OBJECT(
+JSON_ARRAYAGG('skill_ids', s.skill_id,
+		'assignment_ids', asg.assignment_id,
+		'squad_ids', sq.squad_id,
+		'equipment_ids', eq.equipment_id))
+from Dwarves as d
+join Skills as s on s.dwarf_id = d.dwarf_id
+join assignments as asg.dwarf_id = d.dwarf_id
+
+
+Задача 3: Получение данных о гноме с навыками и назначениями
+
+Решение:
+select JSON_OBJECT(
+KEY 'dwarf_id' VALUE d.dwarf_id,
+KEY 'age' VALUE d.age,
+KEY 'profession' VALUE d.profession,
+KEY 'related_entities' VALUE JSON_OBJECT(
+JSON_ARRAYAGG('skill_ids', s.skill_id,
+		'assignment_ids', asg.assignment_id,
+		'squad_ids', sq.squad_id,
+		'equipment_ids', eq.equipment_id))
+from Dwarves as d
+join Skills as s on s.dwarf_id = d.dwarf_id
+join assignments as asg.dwarf_id = d.dwarf_id
+
+
+Задача 4:
+
+Решение:
+select JSON_OBJECT(
+KEY 'dwarf_id' VALUE d.dwarf_id,
+KEY 'age' VALUE d.age,
+KEY 'profession' VALUE d.profession,
+KEY 'related_entities' VALUE JSON_OBJECT(
+JSON_ARRAYAGG('skill_ids', s.skill_id,
+		'assignment_ids', asg.assignment_id,
+		'squad_ids', sq.squad_id,
+		'equipment_ids', eq.equipment_id))
+from Dwarves as d
+join Skills as s on s.dwarf_id = d.dwarf_id
+join assignments as asg.dwarf_id = d.dwarf_id
