@@ -1,49 +1,99 @@
-Задача 2: Получение данных о гноме с навыками и назначениями
+Задача 2: Создайте запрос, который возвращает информацию о гноме, включая идентификаторы всех его навыков, 
+текущих назначений, принадлежности к отрядам и используемого снаряжения.
 
 Решение:
-select JSON_OBJECT(
-KEY 'dwarf_id' VALUE d.dwarf_id,
-KEY 'age' VALUE d.age,
-KEY 'profession' VALUE d.profession,
-KEY 'related_entities' VALUE JSON_OBJECT(
-JSON_ARRAYAGG('skill_ids', s.skill_id,
-		'assignment_ids', asg.assignment_id,
-		'squad_ids', sq.squad_id,
-		'equipment_ids', eq.equipment_id))
-from Dwarves as d
-join Skills as s on s.dwarf_id = d.dwarf_id
-join assignments as asg.dwarf_id = d.dwarf_id
+select 
+d.dwarf_id,
+d.age,
+d.profession,
+VALUE JSON_OBJECT(
+	'skill_ids', (
+		select JSON_ARRAYAG(ds.skill_id)
+		from DWARF_SKILLS as ds 
+		where ds.dwarf_id = d.dwarf_id),
+	'assignment_ids', (
+		select JSON_ARRAYAG(asg.assignment_id)
+		from assignments as asg
+		where asg.dwarf_id = d.dwarf_id),
+	'squad_ids', (
+		select JSON_ARRAYAG(sq.squad_id)
+		from SQUAD_MEMBERS as sq
+		where sq.dwarf_id = d.dwarf_id),
+	'equipment_ids', (
+		select JSON_ARRAYAG(eq.equipment_id)
+		from dwarf_equipment eq
+		where d.dwarf_id = eq.dwarf_id)
+	) as related_entities
+from 
+	Dwarves as d;
 
 
-Задача 3: Получение данных о гноме с навыками и назначениями
+
+Задача 3: Напишите запрос для получения информации 
+о мастерской, включая идентификаторы назначенных 
+ремесленников, текущих проектов, используемых и 
+производимых ресурсов.
 
 Решение:
-select JSON_OBJECT(
-KEY 'dwarf_id' VALUE d.dwarf_id,
-KEY 'age' VALUE d.age,
-KEY 'profession' VALUE d.profession,
-KEY 'related_entities' VALUE JSON_OBJECT(
-JSON_ARRAYAGG('skill_ids', s.skill_id,
-		'assignment_ids', asg.assignment_id,
-		'squad_ids', sq.squad_id,
-		'equipment_ids', eq.equipment_id))
-from Dwarves as d
-join Skills as s on s.dwarf_id = d.dwarf_id
-join assignments as asg.dwarf_id = d.dwarf_id
+select 
+	w.workshop_id,
+	w.name,
+	w.type,
+	w.quality,
+	JSON_OBJECT(
+		'craftsdwarf_ids', (
+			select JSON_ARRAYAGG(wc.dwarf_id)
+			from WORKSHOP_CRAFTSDWARVES as wc
+			where w.workshop_id = wc.workshop_id),
+		'project_ids', (
+			select JSON_ARRAYAGG(prj.project_id)
+			from PROJECTS prj
+			where w.workshop_id = prj.workshop_id),
+		'input_material_ids', (
+			select JSON_ARRAYAGG(wm.material_id)
+			from WORKSHOP_MATERIALS wm
+			where w.workshop_id = wm.workshop_id),
+		'output_product_ids', (
+			select JSON_ARRAYAGG(prd.product_id)
+			from PRODUCTS prd
+			where w.workshop_id = prd.workshop_id)
+	) as related_entities
+from 
+	WORKSHOPS as w;
 
 
-Задача 4:
+Задача 4: Разработайте запрос, который возвращает информацию 
+о военном отряде, включая идентификаторы всех членов отряда, 
+используемого снаряжения, прошлых и текущих операций, 
+тренировок
 
 Решение:
-select JSON_OBJECT(
-KEY 'dwarf_id' VALUE d.dwarf_id,
-KEY 'age' VALUE d.age,
-KEY 'profession' VALUE d.profession,
-KEY 'related_entities' VALUE JSON_OBJECT(
-JSON_ARRAYAGG('skill_ids', s.skill_id,
-		'assignment_ids', asg.assignment_id,
-		'squad_ids', sq.squad_id,
-		'equipment_ids', eq.equipment_id))
-from Dwarves as d
-join Skills as s on s.dwarf_id = d.dwarf_id
-join assignments as asg.dwarf_id = d.dwarf_id
+select
+	ms.squad_id,
+	ms.name,
+	ms.formation_type,
+	ms.leader_id,
+	JSON_OBJECT(
+		'member_ids', (
+			select JSON_ARRAYAGG(sm.squad_id)
+			from SQUAD_MEMBERS as sm
+			where ms.squad_id = sm.squad_id),
+		'equipment_ids', (
+			select JSON_ARRAYAGG(equipment_id)
+			from SQUAD_EQUIPMENT as se
+			where se.squad_id = ms.squad_id),
+		'operation_ids', (
+			select JSON_ARRAYAGG(so.operation_id)
+			from SQUAD_OPERATIONS as so
+			where so.squad_id = ms.squad_id)
+		'training_schedule_ids', (
+			select JSON_ARRAYAGG(st.schedule_id)
+			from SQUAD_TRAINING as st
+			where st.squad_id = ms.squad_id),
+		'battle_report_ids', (
+			select JSON_ARRAYAGG(sb.report_id)
+			from SQUAD_BATTLES
+			where sb.squad_id = ms.squad_id)
+	) as related_entities
+from
+	MILITARY_SQUADS as ms;
