@@ -1,6 +1,73 @@
 Задача 1
 
 Решение:
-Решения нет потому что я потерял схему, и теперь ее никак не найти
-потому что ссылки на страницу нет.
-Вот так.
+with exp_rate as (
+	select 
+		expedition_id,
+		sum(case when survived = true when 1.0 else 0.0 end)/count(dwarf_id) as survival_rate
+	from EXPEDITION_MEMBERS
+	group by expedition_id
+	),
+art_val as (
+	select 
+		expedition_id, 
+		sum(value) as artifacts_value
+	from EXPEDITION_ARTIFACTS
+	group by expedition_id
+	),
+disc_sites as (
+	select 
+		expedition_id,
+		count(site_id) as discovered_sites
+	from EXPEDITION_SITES
+	group by expedition_id
+	),
+enc_suc_rate as (
+	select 
+		expedition_id,
+		sum(case when outcome = true when 1.0 else 0.0)\ nullif(sum(case when outcome = false when 1.0 else 0.0)) as encounter_success_rate
+	from EXPEDITION_CREATURES
+	group by expedition_id
+	)
+
+select
+e.expedition_id,
+e.destination,
+e.status,
+er.survival_rate,
+av.artifacts_value,
+ds.discovered_sites,
+esr.encounter_success_rate,
+sum(
+	select 
+		ds2.sum(experience)
+	from DWARF_SKILLS ds2
+	where 
+		ds2.dwarf_id in (
+			select dwarf_id 
+			from EXPEDITION_MEMBERS em
+			where em.expedition_id = e.expedition_id)
+		and ds2.date BETWEEN e.departure_date and e.return_date	
+	) as skill_improvement,
+e.return_date - e.departure_date as expedition_duration,
+overall_success_score,
+JSON_OBJECT(
+	'member_ids', (
+		SELECT JSON_ARRAYAGG(em2.dwarf_id)
+		FROM EXPEDITION_MEMBERS em2
+		WHERE em2.expedition_id = e.expedition_id),
+	'artifact_ids', (
+		SELECT JSON_ARRAYAGG(ea.artifact_id)
+		FROM EXPEDITION_ARTIFACTS ea
+		where ea.expedition_id = e.expedition_id),
+	'site_ids', (
+		SELECT JSON_ARRAYAGG(es2.site_id)
+		FROM EXPEDITION_SITES es2
+		where es2.expedition_id = e.expedition_id)
+	) AS related_entities
+
+from EXPEDITIONS e
+join exp_rate er on er.expedition_id = e.expedition_id
+join art_val av on av.expedition_id = e.expedition_id
+join disc_sites ds on ds.expedition_id = e.expedition_id
+join enc_suc_rate esr on esr.expedition_id = e.expedition_id;
