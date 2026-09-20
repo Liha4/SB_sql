@@ -1,0 +1,21 @@
+Задача 2*:
+Разработайте запрос, который анализирует эффективность каждой мастерской, учитывая:
+- Производительность каждого ремесленника (соотношение созданных продуктов к затраченному времени)
+- Эффективность использования ресурсов (соотношение потребляемых ресурсов к производимым товарам)
+- Качество производимых товаров (средневзвешенное по ценности)
+- Время простоя мастерской
+- Влияние навыков ремесленников на качество товаров
+
+Решение:
+with product_analyze as (
+select
+	w.workshop_id,
+	w.name,
+	w.type,
+	count(distinct wc.dwarf_id) as num_craftsdwarves,
+	sum(wp.quantity) over (group by wp.workshop_id) as total_quantity_produced,
+	sum(wp.quantity * p.value) over (group by wp.workshop_id) as total_production_value),
+
+select 
+	avg(quantity) as daily_production_rate,
+	
